@@ -1,0 +1,8 @@
+rootProject.name = 'ride-hailing'
+
+// Register all 5 modules — Gradle won't know they exist without this
+include 'shared-lib'
+include 'location-service'
+include 'matching-service'
+include 'trip-service'
+include 'notification-service'

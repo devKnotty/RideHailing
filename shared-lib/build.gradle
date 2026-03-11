@@ -1,0 +1,4 @@
+dependencies {
+    // Only needs basic Spring context for annotations like @Component
+    implementation 'org.springframework.boot:spring-boot-starter'
+}

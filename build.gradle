@@ -1,0 +1,54 @@
+plugins {
+	// Declare plugins here at root level — but DON'T apply them here
+	// 'apply false' means: "make it available to children, but don't run it on root"
+	id 'org.springframework.boot'        version '3.2.0' apply false
+	id 'io.spring.dependency-management' version '1.1.7' apply false
+}
+
+
+// This block applies configuration to ALL subprojects
+subprojects {
+	apply plugin: 'java'
+	apply plugin: 'org.springframework.boot'
+	apply plugin: 'io.spring.dependency-management'
+
+	group = 'com.ridehailing'
+	version = '1.0.0-SNAPSHOT'
+
+	java {
+		sourceCompatibility = JavaVersion.VERSION_21
+		targetCompatibility = JavaVersion.VERSION_21
+	}
+
+	// Repositories available to ALL modules
+	repositories {
+		mavenCentral()
+	}
+
+	// dependencyManagement = define versions ONCE here
+	// Child modules add the dependency but skip the version
+	dependencyManagement {
+		imports {
+			mavenBom "org.springframework.boot:spring-boot-dependencies:3.2.0"
+		}
+		dependencies {
+			dependency 'org.redisson:redisson-spring-boot-starter:3.24.3'
+			dependency 'org.mapstruct:mapstruct:1.5.5.Final'
+		}
+	}
+
+	// These go to EVERY module automatically — only truly universal deps
+	dependencies {
+		implementation 'org.springframework.boot:spring-boot-starter-actuator'
+		compileOnly 'org.projectlombok:lombok'
+		annotationProcessor 'org.projectlombok:lombok'
+		testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	}
+}
+
+// shared-lib is NOT a runnable Spring Boot app
+// so we disable the bootJar task for it specifically
+project(':shared-lib') {
+	tasks.named('bootJar') { enabled = false }
+	tasks.named('jar')     { enabled = true  }
+}
