@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+
+  # ──────────────────────────────────────────
+  # POSTGRESQL — permanent data storage
+  # ──────────────────────────────────────────
+  postgres:
+    image: postgres:15                    # use official postgres image
+    container_name: ridehailing-postgres
+    environment:                          # like setting env variables
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ridehailing            # creates this DB automatically
+    ports:
+      - "5432:5432"                       # mac:container
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - ridehailing-network
+
+  # ──────────────────────────────────────────
+  # REDIS — live location tracking
+  # ──────────────────────────────────────────
+  redis:
+    image: redis:7
+    container_name: ridehailing-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - ridehailing-network
+
+  # ──────────────────────────────────────────
+  # ZOOKEEPER — manages kafka
+  # ──────────────────────────────────────────
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: ridehailing-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - ridehailing-network
+
+  # ──────────────────────────────────────────
+  # KAFKA — event/message bus between services
+  # ──────────────────────────────────────────
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: ridehailing-kafka
+    depends_on:
+      - zookeeper                         # wait for zookeeper first
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - ridehailing-network
+
+# ──────────────────────────────────────────
+# NETWORKS — lets containers talk to each other
+# ──────────────────────────────────────────
+networks:
+  ridehailing-network:
+    driver: bridge
+
+# ──────────────────────────────────────────
+# VOLUMES — persistent data storage
+# ──────────────────────────────────────────
+volumes:
+  postgres-data:
+  redis-data:
